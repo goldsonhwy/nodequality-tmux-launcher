@@ -12,15 +12,13 @@ This repository provides a small Bash wrapper for the NodeQuality benchmark. It:
 Run this on the target Debian/Ubuntu server as a user with root access or passwordless `sudo`:
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/OWNER/REPOSITORY/main/nodequality-tmux.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/goldsonhwy/nodequality-tmux-launcher/main/nodequality-tmux.sh)
 ```
-
-Replace `OWNER/REPOSITORY` with the actual GitHub path after publishing this repository.
 
 The script starts the job and returns immediately. Reconnect to the running output with:
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/OWNER/REPOSITORY/main/nodequality-tmux.sh) attach
+bash <(curl -fsSL https://raw.githubusercontent.com/goldsonhwy/nodequality-tmux-launcher/main/nodequality-tmux.sh) attach
 ```
 
 Inside tmux, detach while keeping the benchmark running with `Ctrl-b`, then `d`.
