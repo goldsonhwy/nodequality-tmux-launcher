@@ -19,12 +19,32 @@ bash <(curl -fsSL https://raw.githubusercontent.com/goldsonhwy/nodequality-tmux-
 
 脚本启动后会立即返回，测评会在后台继续运行。
 
+启动成功后会显示以下提示：
+
+```text
+脚本已经开始执行，你可以放心关闭SSH，重新连接后在服务器输入look即可返回脚本观看进度。
+```
+
+SSH 断开后，重新连接服务器并输入：
+
+```bash
+look
+```
+
+即可重新进入测评的 `tmux` 会话查看进度。
+
 ## 重新连接查看输出
 
 SSH 重新连接服务器后，执行：
 
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/goldsonhwy/nodequality-tmux-launcher/main/nodequality-tmux.sh) attach
+```
+
+也可以直接输入：
+
+```bash
+look
 ```
 
 进入 `tmux` 后，如果想退出查看界面但不停止测评，请按：
@@ -110,5 +130,7 @@ cat ~/nodequality-my-test.log
 ## 注意事项
 
 脚本运行时会从 `https://run.NodeQuality.com` 下载当前版本的 NodeQuality 测评脚本。测评过程中还会下载其他测试组件，并使用临时目录、挂载和临时系统环境。
+
+启动脚本时会在 `/usr/local/bin/look` 安装查看命令。如果服务器已经存在其他同名命令，脚本不会覆盖它，并会提示你处理命令冲突。
 
 请确认服务器允许相关操作，并在生产服务器上运行前了解测评脚本的行为。

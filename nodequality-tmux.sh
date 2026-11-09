@@ -50,6 +50,40 @@ install_dependencies() {
     "${SUDO[@]}" apt-get install -y "${missing[@]}"
 }
 
+install_look_command() {
+    local target=/usr/local/bin/look
+    local temp_file
+
+    need_root_or_sudo
+
+    if [[ -e "$target" ]] && ! grep -q 'nodequality-tmux-launcher' "$target" 2>/dev/null; then
+        printf '错误：%s 已存在，脚本不会覆盖已有命令。\n' "$target" >&2
+        exit 1
+    fi
+
+    temp_file=$(mktemp)
+    cat > "$temp_file" <<EOF
+#!/usr/bin/env bash
+# nodequality-tmux-launcher
+set -Eeuo pipefail
+session=$(printf '%q' "$SESSION")
+if ! tmux has-session -t "\$session" 2>/dev/null; then
+    printf '没有找到 NodeQuality 的 tmux 会话：%s\n' "\$session" >&2
+    printf '测评可能已经结束，日志文件：%s\n' $(printf '%q' "$LOG_FILE") >&2
+    exit 1
+fi
+exec tmux attach-session -t "\$session"
+EOF
+    chmod 0755 "$temp_file"
+
+    if [[ "$(id -u)" -eq 0 ]]; then
+        install -m 0755 "$temp_file" "$target"
+    else
+        sudo install -m 0755 "$temp_file" "$target"
+    fi
+    rm -f "$temp_file"
+}
+
 has_session() {
     tmux has-session -t "$SESSION" 2>/dev/null
 }
@@ -64,19 +98,21 @@ start_session() {
     local worker
     worker=$(cat <<EOF
 set -Eeuo pipefail
-printf '[%s] Starting NodeQuality with automated answers: v, y, y, y\\n' "\$(date '+%F %T')"
+printf '[%s] NodeQuality 测评开始，自动输入：v、y、y、y\\n' "\$(date '+%F %T')"
 script_file=\$(mktemp)
 trap 'rm -f "\$script_file"' EXIT
 if ! curl -fsSL "$NODEQUALITY_URL" -o "\$script_file"; then
-    printf '[%s] Failed to download NodeQuality script.\\n' "\$(date '+%F %T')" >&2
-    exit 1
+    printf '[%s] NodeQuality 测评脚本下载失败。\\n' "\$(date '+%F %T')" >&2
+    printf '脚本下载失败，tmux 会话仍会保留，按 Ctrl-b，然后按 d 退出。\\n'
+    exec bash
 fi
 set +e
 printf 'v\\ny\\ny\\ny\\n' | bash "\$script_file"
 status=\$?
 set -e
-printf '[%s] NodeQuality process exited with status %s.\\n' "\$(date '+%F %T')" "\$status"
-exit "\$status"
+printf '[%s] NodeQuality 测评结束，退出状态：%s。\\n' "\$(date '+%F %T')" "\$status"
+printf '测评已经结束，tmux 会话仍会保留，可输入 look 查看最后输出。\\n'
+exec bash
 EOF
 )
 
@@ -91,7 +127,9 @@ EOF
 case "${1:-start}" in
     start)
         install_dependencies
+        install_look_command
         start_session
+        printf '脚本已经开始执行，你可以放心关闭SSH，重新连接后在服务器输入look即可返回脚本观看进度。\n'
         ;;
     attach)
         if ! has_session; then
