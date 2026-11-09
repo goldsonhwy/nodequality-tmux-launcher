@@ -1,52 +1,114 @@
-# NodeQuality tmux launcher
+# NodeQuality 测评一键启动脚本
 
-This repository provides a small Bash wrapper for the NodeQuality benchmark. It:
+这是一个用于运行 NodeQuality 服务器测评的 Bash 脚本。脚本具有以下功能：
 
-- Installs `curl` and `tmux` with `apt-get` when either is missing.
-- Starts the benchmark inside a detached tmux session, so an SSH disconnect does not stop it.
-- Sends the requested answers automatically: `v`, `y`, `y`, `y`.
-- Lets you reconnect later and inspect the live output.
+- 自动安装缺少的 `curl` 和 `tmux`。
+- 在独立的 `tmux` 后台会话中运行测评。
+- 自动输入 `v`、`y`、`y`、`y`。
+- SSH 连接断开后，测评仍会继续运行。
+- 支持重新连接查看实时输出。
+- 自动保存测评输出日志。
 
-## One-line usage
+## 一键启动
 
-Run this on the target Debian/Ubuntu server as a user with root access or passwordless `sudo`:
+请在 Debian 或 Ubuntu 服务器上执行。当前用户需要具备 root 权限，或者可以使用无需交互输入密码的 `sudo`：
 
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/goldsonhwy/nodequality-tmux-launcher/main/nodequality-tmux.sh)
 ```
 
-The script starts the job and returns immediately. Reconnect to the running output with:
+脚本启动后会立即返回，测评会在后台继续运行。
+
+## 重新连接查看输出
+
+SSH 重新连接服务器后，执行：
 
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/goldsonhwy/nodequality-tmux-launcher/main/nodequality-tmux.sh) attach
 ```
 
-Inside tmux, detach while keeping the benchmark running with `Ctrl-b`, then `d`.
+进入 `tmux` 后，如果想退出查看界面但不停止测评，请按：
 
-## Commands
+```text
+Ctrl-b，然后按 d
+```
+
+## 查看运行状态
 
 ```bash
-# Start the benchmark in tmux
-bash nodequality-tmux.sh
+bash <(curl -fsSL https://raw.githubusercontent.com/goldsonhwy/nodequality-tmux-launcher/main/nodequality-tmux.sh) status
+```
 
-# Attach to the live output
-bash nodequality-tmux.sh attach
+如果会话正在运行，会显示 `nodequality` 会话信息。
 
-# Check whether it is still running
-bash nodequality-tmux.sh status
+## 查看保存的日志
 
-# Read the saved output after reconnecting
+默认日志文件为：
+
+```bash
 cat ~/nodequality-nodequality.log
+```
 
-# Stop the tmux session
+也可以实时查看日志：
+
+```bash
+tail -f ~/nodequality-nodequality.log
+```
+
+## 停止测评
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/goldsonhwy/nodequality-tmux-launcher/main/nodequality-tmux.sh) stop
+```
+
+## 使用本地脚本
+
+如果已经下载了 `nodequality-tmux.sh`，可以直接执行：
+
+```bash
+bash nodequality-tmux.sh
+```
+
+重新连接查看输出：
+
+```bash
+bash nodequality-tmux.sh attach
+```
+
+查看状态：
+
+```bash
+bash nodequality-tmux.sh status
+```
+
+停止测评：
+
+```bash
 bash nodequality-tmux.sh stop
 ```
 
-The default tmux session name is `nodequality`. To use another name:
+## 自定义会话名称
+
+默认会话名称为 `nodequality`。如果需要同时运行多个测评，可以指定不同的会话名称：
 
 ```bash
 NODEQUALITY_TMUX_SESSION=my-test bash nodequality-tmux.sh
+```
+
+重新连接指定会话：
+
+```bash
 NODEQUALITY_TMUX_SESSION=my-test bash nodequality-tmux.sh attach
 ```
 
-The wrapper intentionally uses the current `run.NodeQuality.com` script at execution time. Review that upstream script before running it on a production server, because it downloads additional test components and requires mount/chroot privileges during the benchmark.
+对应的日志文件为：
+
+```bash
+cat ~/nodequality-my-test.log
+```
+
+## 注意事项
+
+脚本运行时会从 `https://run.NodeQuality.com` 下载当前版本的 NodeQuality 测评脚本。测评过程中还会下载其他测试组件，并使用临时目录、挂载和临时系统环境。
+
+请确认服务器允许相关操作，并在生产服务器上运行前了解测评脚本的行为。
