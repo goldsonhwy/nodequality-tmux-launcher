@@ -4,7 +4,7 @@
 
 - 自动安装缺少的 `curl` 和 `tmux`。
 - 在独立的 `tmux` 后台会话中运行测评。
-- 自动输入 `v`、`y`、`y`、`y`。
+- 默认自动输入 `-v`、`-y`、`-y`、`-y`，也可以自定义四项测试参数。
 - SSH 连接断开后，测评仍会继续运行。
 - 支持重新连接查看实时输出。
 - 自动保存测评输出日志。
@@ -18,6 +18,39 @@ bash <(curl -fsSL https://raw.githubusercontent.com/goldsonhwy/nodequality-tmux-
 ```
 
 脚本启动后会立即返回，测评会在后台继续运行。
+
+### 默认参数
+
+不加参数时，使用默认设置：
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/goldsonhwy/nodequality-tmux-launcher/main/nodequality-tmux.sh) -v -y -y -y
+```
+
+四个参数依次对应以下四项测试：
+
+| 参数位置 | 测试项目 | 可用参数 |
+| --- | --- | --- |
+| 第 1 个 | HardwareQuality 硬件质量测试 | `-v` 深度测试、`-f` 快速测试、`-y` 普通测试、`-n` 不测试 |
+| 第 2 个 | IPQuality IP 质量测试 | `-y` 测试、`-n` 不测试 |
+| 第 3 个 | NetQuality 网络质量测试 | `-y` 测试、`-l` 低流量测试、`-n` 不测试 |
+| 第 4 个 | 回程路由追踪测试 | `-y` 测试、`-n` 不测试 |
+
+### 自定义测试项目
+
+例如，只测试后两项，不测试前两项：
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/goldsonhwy/nodequality-tmux-launcher/main/nodequality-tmux.sh) -n -n -y -y
+```
+
+也可以使用 `start` 写法：
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/goldsonhwy/nodequality-tmux-launcher/main/nodequality-tmux.sh) start -n -n -y -y
+```
+
+四个参数必须按顺序同时提供，不能只提供其中一部分。
 
 启动成功后会显示以下提示：
 
